@@ -1,16 +1,25 @@
-# task_manager
+# 📋 Flutter Task Manager App
 
-A new Flutter project.
+This project is a functional Task Manager application built using Flutter as part of my internship (Week 3 Final Project).
 
-## Getting Started
+The app allows users to manage their daily tasks with features like adding, deleting, and marking tasks as complete, along with persistent local storage.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 📱 Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- ➕ Add new tasks using a dialog input
+- 📃 Display tasks in a dynamic ListView
+- ✅ Mark tasks as complete (with checkbox)
+- ❌ Delete tasks
+- 💾 Persistent storage using SharedPreferences
+- ✨ Splash screen on app launch (Bonus Feature)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🛠️ Tech Stack
+
+- Flutter
+- Dart
+- SharedPreferences (for local data storage)
+- JSON Encoding/Decoding (for storing complex data)
