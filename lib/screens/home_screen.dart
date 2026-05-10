@@ -1,7 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:task_manager/components/task_dialogue.dart';
+import 'package:task_manager/provider/task_provider.dart';
+import 'package:task_manager/task_enum.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,63 +13,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final taskController = TextEditingController();
-  List<Map<String, dynamic>> tasks = [];
-
-  Future<void> saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    //this is because sharedPreference can only store string in local storage.
-    final encodedTaskString = jsonEncode(tasks);
-    await prefs.setString('tasks', encodedTaskString);
-  }
-
-  Future<void> addTask(String task) async {
-    if (task.isEmpty) return;
-
-    setState(() {
-      tasks.add({'title': task, 'isComplete': false});
-      taskController.clear();
-    });
-
-    await saveTasks();
-  }
-
-  Future<void> deleteTask(int index) async {
-    setState(() {
-      tasks.removeAt(index);
-    });
-    await saveTasks();
-  }
-
-  Future<void> toggleTask(int index) async {
-    setState(() {
-      // Flip the isComplete value, true becomes false, false becomes true
-      tasks[index]['isComplete'] = !tasks[index]['isComplete'];
-    });
-
-    await saveTasks();
-  }
-
-  Future<void> loadTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    //Get saved string from SharedPreferences
-    final taskJson = prefs.getString('tasks');
-    if (taskJson != null) {
-      //convert it back into dart object to display
-      final List<dynamic> decodeData = jsonDecode(taskJson);
-      setState(() {
-        //Convert every item to Map<String, dynamic>
-        tasks = decodeData
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList();
-      });
-    }
-  }
+  final editController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    loadTasks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TaskProvider>().loadTasks();
+    });
   }
 
   @override
@@ -83,37 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
               showDialog(
                 context: context,
                 builder: (context) {
-                  return AlertDialog(
-                    title: const Text('Add a task'),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          //add the task user entered in textformfield
-                          addTask(taskController.text);
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Add'),
-                      ),
-                    ],
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextField(
-                          controller: taskController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter task',
-
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ],
-                    ),
+                  // TaskDialogue is a reusable task dialague box, gets parameter of wheather to call edit or add function which I pass it through an enum TaskMoode which determines which function to call. we can use string also like mode == "add or delete" but enums are more type safe.
+                  //This is also an abstraction principle as it hides internal complexities of a module or class and makes UI screen in this case homescreen.dart clean and maintainable
+                  return TaskDialogue(
+                    mode: TaskMoode.add,
+                    taskValue: taskController,
                   );
                 },
               );
@@ -127,74 +53,98 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      body: tasks.isEmpty
-          ? Center(
-              child: const Text(
-                'No tasks right now, add one to appear',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final taskTitle = tasks[index]['title'];
-                        final isComplete = tasks[index]['isComplete'];
-                        return Container(
-                          padding: EdgeInsets.all(12),
+      body: Consumer<TaskProvider>(
+        builder: (context, provider, child) {
+          if (provider.tasks.isEmpty) {
+            return const Center(
+              child: Text('No tasks right now, add one to appear'),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: provider.tasks.length,
+                    itemBuilder: (context, index) {
+                      final taskTitle = provider.tasks[index]['title'];
+                      final isComplete = provider.tasks[index]['isComplete'];
+                      return Consumer<TaskProvider>(
+                        builder: (context, provider, child) => AnimatedContainer(
                           margin: EdgeInsets.only(bottom: 12),
-                          width: double.infinity,
+                          padding: EdgeInsets.all(4),
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeIn,
                           decoration: BoxDecoration(
-                            color: Colors.deepOrangeAccent,
+                            color: isComplete
+                                ? Colors.green
+                                : Colors.deepOrange,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              Checkbox(
-                                focusColor: Colors.white,
-                                hoverColor: Colors.white,
-                                checkColor: Colors.black,
-                                activeColor: Colors.white,
-                                side: BorderSide(color: Colors.white),
-                                value: isComplete,
-                                onChanged: (value) {
-                                  toggleTask(index);
-                                },
-                              ),
                               Expanded(
-                                child: Text(
-                                  taskTitle,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    decoration: isComplete
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Checkbox(
+                                      activeColor: Colors.white,
+                                      checkColor: Colors.black,
+                                      side: BorderSide(color: Colors.white),
+                                      value: isComplete,
+                                      onChanged: (value) {
+                                        provider.toggleTask(index);
+                                      },
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        taskTitle,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          decoration: isComplete
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        editController.text = taskTitle;
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => TaskDialogue(
+                                            // here you can see the reusability of the task dialague class. its reuable and maintainable.
+                                            mode: TaskMoode.edit,
+                                            taskValue: editController,
+                                            index: index,
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.edit_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               IconButton(
-                                onPressed: () {
-                                  deleteTask(index);
-                                },
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
-                                ),
+                                onPressed: () {},
+                                icon: Icon(Icons.delete, color: Colors.white),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          );
+        },
+      ),
     );
   }
 }

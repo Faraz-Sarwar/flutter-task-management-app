@@ -1,0 +1,1 @@
+enum TaskMoode { add, edit }
