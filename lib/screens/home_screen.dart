@@ -25,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('build');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your tasks'),
@@ -71,98 +70,92 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final taskTitle = provider.tasks[index]['title'];
                       final isComplete = provider.tasks[index]['isComplete'];
-                      return Consumer<TaskProvider>(
-                        builder: (context, provider, child) => Dismissible(
-                          key: ValueKey(taskTitle),
-                          direction: DismissDirection.horizontal,
-                          background: Container(
-                            height: 30,
-                            width: 30,
-                            padding: EdgeInsets.all(20),
-                            alignment: Alignment.centerLeft,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                      return Dismissible(
+                        key: ValueKey(taskTitle),
+                        direction: DismissDirection.horizontal,
+                        background: Container(
+                          padding: EdgeInsets.all(20),
+                          alignment: Alignment.centerLeft,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          secondaryBackground: Container(
-                            height: 30,
-                            width: 30,
-                            padding: EdgeInsets.all(20),
-                            alignment: Alignment.centerRight,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 24,
                           ),
-                          onDismissed: (direction) {
-                            provider.deleteTask(index);
-                          },
-                          child: AnimatedContainer(
-                            margin: EdgeInsets.only(bottom: 12),
-                            padding: EdgeInsets.all(4),
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeIn,
-                            decoration: BoxDecoration(
-                              color: isComplete
-                                  ? Colors.green
-                                  : Colors.deepOrange,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Expanded(
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    activeColor: Colors.white,
-                                    checkColor: Colors.black,
-                                    side: BorderSide(color: Colors.white),
-                                    value: isComplete,
-                                    onChanged: (value) {
-                                      provider.toggleTask(index);
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      taskTitle,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        decoration: isComplete
-                                            ? TextDecoration.lineThrough
-                                            : TextDecoration.none,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      editController.text = taskTitle;
-                                      showDialog(
-                                        context: context,
-                                        builder: (_) => TaskDialogue(
-                                          // here you can see the reusability of the task dialague class. its reuable and maintainable.
-                                          mode: TaskMoode.edit,
-                                          taskValue: editController,
-                                          index: index,
-                                        ),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      Icons.edit_outlined,
+                        ),
+                        secondaryBackground: Container(
+                          padding: EdgeInsets.all(20),
+                          alignment: Alignment.centerRight,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        onDismissed: (direction) {
+                          provider.deleteTask(index);
+                        },
+                        child: AnimatedContainer(
+                          margin: EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.all(8),
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.easeIn,
+                          decoration: BoxDecoration(
+                            color: isComplete
+                                ? Colors.green
+                                : Colors.deepOrange,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Expanded(
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                  activeColor: Colors.white,
+                                  checkColor: Colors.black,
+                                  side: BorderSide(color: Colors.white),
+                                  value: isComplete,
+                                  onChanged: (value) {
+                                    provider.toggleTask(index);
+                                  },
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    taskTitle,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      decoration: isComplete
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
                                       color: Colors.white,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    editController.text = taskTitle;
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => TaskDialogue(
+                                        // here you can see the reusability of the task dialague class. its reuable and maintainable.
+                                        mode: TaskMoode.edit,
+                                        taskValue: editController,
+                                        index: index,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

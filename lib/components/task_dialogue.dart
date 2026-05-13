@@ -55,8 +55,8 @@ class TaskDialogue extends StatelessWidget {
             } else {
               if (index != null && mode == TaskMoode.edit) {
                 provider.editTask(index!, taskValue.text);
-                Navigator.pop(context);
                 taskValue.clear();
+                Navigator.pop(context);
               }
             }
           },
